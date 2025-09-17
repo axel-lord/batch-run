@@ -2,6 +2,7 @@ use ::std::{
     io::{Write, pipe},
     num::NonZero,
     process::ExitCode,
+    sync::Arc,
 };
 
 use ::clap::Parser;
@@ -198,6 +199,12 @@ impl App {
     }
 }
 
+const SAMPLE: &str = r##"# Sample zsh script
+while IFS=$'\n' read -r DATA; do
+    jq '.' <<< $DATA
+done
+"##;
+
 fn main() -> ExitCode {
     let cli = Cli::parse();
     match application("Batch Run", App::update, App::view)
@@ -213,7 +220,9 @@ fn main() -> ExitCode {
                     language: Language::Zsh,
                     content: Default::default(),
                 },
-                Task::none(),
+                Task::done(Msg::ContentAction(Action::Edit(Edit::Paste(Arc::new(
+                    String::from(SAMPLE),
+                ))))),
             )
         }) {
         Ok(_) => ExitCode::SUCCESS,
